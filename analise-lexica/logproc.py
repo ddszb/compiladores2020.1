@@ -10,6 +10,8 @@ tokens = [
     'MESSAGE'
 ]
 
+t_ignore = '\n'
+
 def t_TIMESTAMP(t):
     r'\d\d:\d\d:\d\d\.\d\d\d\d\d\d\s-\d\d\d\d'
     t.type ='TIMESTAMP'
