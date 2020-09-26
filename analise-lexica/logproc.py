@@ -18,13 +18,12 @@ def t_TIMESTAMP(t):
     return t
 
 def t_PROC(t):
-    r'\t[a-zA-Z]*\t'
+    r'\t[a-zA-Z]+\t'
     t.value = t.value[1:len(t.value) - 1]
     return t
 
 def t_MESSAGE(t):
     r'.+\n([^\d\n]\s*.*\n?)*'
-    #r'.+\n(^\s.*)*'
     t.value = t.value[:len(t.value) - 1]
     return t
 
