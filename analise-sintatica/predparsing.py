@@ -9,6 +9,9 @@ from tabulate import tabulate
 # Calculates FIRST, FOLLOW and predictive parsing table
 # as described on pg. 221 - 224 of the Dragon book, 2nd. ed.
 
+# Using E as epsilon
+E = 'epsilon'
+
 class Grammar:
     def __init__(self, s, p, nt, t):
         self.start_symbol = s
@@ -82,19 +85,24 @@ class Grammar:
             x_1 = w[0]
             # "Add to FIRST(X_1 X_2 ... X_n) all non-epsilon symbols of
             # FIRST(X_1)."
-
-            ### Do your magic!
-
+            if E not in first_w:
+                first_w.update(self.first_tab[x_1])
             # Also add the non-epsilon symbols of FIRST(X_2), if epsilon is in
             # FIRST(X_1), and so on until X_n.
+            for i in range(len(w)):
+                atual = w[i]
+                if E in self.first_tab[w[i-1]] and E not in self.first_tab[atual]:
+                    first_w.update(self.first_tab[atual])
 
-            ### Do your magic!
-            
             # Finally, add epsilon to FIRST(X_1 X_2 ... X_n) if for all i
             # epsilon \in FIRST(X_i).
-
-            ### Do your magic!
-            
+            add_epsilon = True
+            for sym in w:
+                if E not in self.first_tab[sym]:
+                    add_epsilon = False
+                    break
+            if add_epsilon:
+                first_w.add(E)
             return first_w
         else:
             return set()
@@ -187,12 +195,12 @@ class Grammar:
         '''
         if not follow.issubset(self.follow_tab[symb]):
             self.follow_trace.append("Added " + str(follow) + " to FOLLOW(" + str(symb) + ") " + \
-                                     "while processing rule " + str(symb) + " -> " +  ''.join(rhs))
+                                     "while processing rule " + str(symb) + " -> " + ''.join(rhs))
 
     def print_follow_log(self):
         for m in self.follow_trace:
             print(m)
-            
+
     def compute_follow(self):
         '''
         Calculates FOLLOW table.
