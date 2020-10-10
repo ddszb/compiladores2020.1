@@ -245,20 +245,17 @@ class Grammar:
                         first_beta = self.firstW(beta)
                         for symbol in first_beta:
                             if symbol != E:
-                                #self.follow_log(B, symbol, rhs)
                                 self.follow_tab[B].add(symbol)
                         # If there is a production A -> alpha B beta
                         # where FIRST(beta) contains epsilon, then FOLLOW(A) \subset FOLLOW(B) 􏰛􏰂
                         if E in first_beta:
                             for symbol in self.follow_tab[s]:
-                                #self.follow_log(B, symbol, rhs)
                                 self.follow_tab[B].add(symbol)
                         pass
                     else:
                         # If there is a production A -> alpha B
                         # then FOLLOW(A) \subset FOLLOW(B) 􏰛􏰂
                         for symbol in self.follow_tab[s]:
-                            #self.follow_log(B, symbol, rhs)
                             self.follow_tab[B].add(symbol)
                         pass
     def compute_pred_parsing_tab(self):
@@ -274,15 +271,15 @@ class Grammar:
                 # is in FOLLOW(A), add A -> alpha to M[A, $] as well.
                 if alpha == ("epsilon",) or \
                    (alpha != ("epsilon",) and ("epsilon" in self.firstW(alpha))):
-                        print("-")
-                    ### Do your magic!
-
+                        for b in self.follow_tab[A]:
+                            if b in self.terminals or b == '$':
+                                self.pred_parsing_tab[A][b].append(A + " -> " + "".join(alpha))
                 else:
-                    print("+")
                     # For each terminal a in FIRST(alpha), 
                     # add A -> alpha to M[A, a]
-
-                    ### Do your magic!
+                    for a in self.firstW(alpha):
+                        if a in self.terminals:
+                            self.pred_parsing_tab[A][a].append(A + " -> " + "".join(alpha))
                     
     def print_pred_parsing_tab(self):
         # self.pp.pprint(self.pred_parsing_tab)
