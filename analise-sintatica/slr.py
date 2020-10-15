@@ -58,9 +58,8 @@ def goto(s, x, g):
     for lhs, rhs, dot_idx in s:
         if dot_idx < len(rhs) and x == rhs[dot_idx]:
             singleton_set = {(lhs, rhs, dot_idx + 1)}
-            items = closure(singleton_set, g)
-            goto_sx = goto_sx.union(items)
-            break
+            goto_sx = goto_sx.union(singleton_set)
+    goto_sx = closure(goto_sx, g)
     return goto_sx
 
 def augment(g):
