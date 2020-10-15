@@ -32,17 +32,22 @@ def closure(s, g):
         # Python does not allow a set to change while iterating over it.
         # We need to collect new items and then unite them with the closure
         # being calculated.
-        new_items = set() 
+        new_items = set()
         for lhs, rhs, dot_idx in clos:
             if dot_idx < len(rhs):
-                
-                # Do your magic here!
-                
+                if rhs[dot_idx] in g.production_rules:
+                    B = rhs[dot_idx]
+                    for production in g.production_rules.get(B):
+                        b_item = (B, production, 0)
+                        if b_item not in clos:
+                            new_items.add(b_item)
+
         clos = clos.union(new_items)
         new_clos_size = len(clos)
         if clos_size == new_clos_size:
             break
     return clos
+
 
 def goto(s, x, g):
     '''
@@ -51,9 +56,11 @@ def goto(s, x, g):
     '''
     goto_sx = set()
     for lhs, rhs, dot_idx in s:
-
-        # Do your magic here!
-        
+        if dot_idx < len(rhs) and x == rhs[dot_idx]:
+            singleton_set = {(lhs, rhs, dot_idx + 1)}
+            items = closure(singleton_set, g)
+            goto_sx = goto_sx.union(items)
+            break
     return goto_sx
 
 def augment(g):
@@ -63,7 +70,7 @@ def augment(g):
     g.start_symbol = new_start_symbol
     g.non_terminals.append(new_start_symbol)
     g.first_tab[new_start_symbol] = set()
-    g.follow_tab[new_start_symbol] = set()    
+    g.follow_tab[new_start_symbol] = set()
 
 def canonical_items(g):
     '''
@@ -79,7 +86,7 @@ def canonical_items(g):
     #                 add GOTO(I, X) to C
     #   until no new set of items are added to C on a round
     # }
-    
+
     # Grammar g is assumed augmented
     s = g.start_symbol          # S'
     orig_s = s[:len(s) - 1]     # S
@@ -91,12 +98,15 @@ def canonical_items(g):
     can = [closure({start_item}, g)]
     while True:
         can_size = len(can)
-
-        # Do your magic here!
-        
+        for item in can:
+            for x in g.getSymbols():
+                goto_ix = goto(item, x, g)
+                if len(goto_ix) > 0 and goto_ix not in can:
+                    can.append(goto_ix)
         new_can_size = len(can)
         if new_can_size == can_size:
             break
+
     return can
 
 def slr_parsing_table(g):
@@ -137,8 +147,9 @@ def slr_parsing_table(g):
                 #      Here a must be a terminal.􏰋
 
                 # Do your magic here!
-                
+
             else:
+                print("-")
                 # (b) If [A -> alpha *] is in Ii, then set
                 # ACTION[i, a] = "reduce A -> alpha" to
                 # all a in FOLLOW(A); here A may not be S'.
@@ -146,13 +157,13 @@ def slr_parsing_table(g):
                 # ACTION[i, $] = "accept".
 
                 # Do your magic here!
-                
+
         # 3. The goto transitions for state i are constructed for all
         # nonterminals A using the rule􏰗 If GOTO(Ii, A) = Ij 􏰉
         # then GOTO[i,􏰥A] = j.􏰋
 
                 # Do your magic here!
-                
+
     return (action_tab, goto_tab)
 
 def print_slr_table(act_tb, goto_tb):
@@ -160,7 +171,7 @@ def print_slr_table(act_tb, goto_tb):
     df = pd.DataFrame(act_tb).T
     df.fillna(0, inplace=True)
     print(tabulate(df, headers='keys', tablefmt='psql'))
-    print("GOTO table")    
+    print("GOTO table")
     df = pd.DataFrame(goto_tb).T
     df.fillna(0, inplace=True)
     print(tabulate(df, headers='keys', tablefmt='psql'))
@@ -186,7 +197,7 @@ if __name__ == '__main__':
     g.compute_first()
     g.compute_follow()
     act_tb, goto_tb = slr_parsing_table(g)
-    print_slr_table(act_tb, goto_tb)        
+    print_slr_table(act_tb, goto_tb)
 
     print("\n# Production rules for grammar 4.28")
     p = {"E" : [("T", "E2")],
@@ -198,9 +209,9 @@ if __name__ == '__main__':
     g = Grammar("E", p, ["E", "E2", "T", "T'", "F"],
                 ["+", "*", "(", ")", "id"])
     augment(g)
-    print("\n# Production rules for Example 4.32, pg. 225, Grammar 4.28.")    
+    print("\n# Production rules for Example 4.32, pg. 225, Grammar 4.28.")
     g.print_productions()
     g.compute_first()
     g.compute_follow()
     act_tb, goto_tb = slr_parsing_table(g)
-    print_slr_table(act_tb, goto_tb)    
+    print_slr_table(act_tb, goto_tb)
