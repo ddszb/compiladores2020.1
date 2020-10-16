@@ -51,6 +51,7 @@ class Grammar:
         self.pred_parsing_trace = []
         self.pp = pprint.PrettyPrinter()
         self.first_computed = False
+        self.follow_computed = False
     
     def getSymbols(self):
         symbols = self.non_terminals.copy()
@@ -67,9 +68,18 @@ class Grammar:
             for rhs in self.production_rules[s]:
                 self.print_production(s, rhs)
 
+    def first_tab_size(self):
+        return self.tab_size(self.first_tab)
+
     def compute_first(self):
-        for s in self.getSymbols():
-            self.first(s)
+        while True:
+            first_size = self.first_tab_size()
+            for s in self.getSymbols():
+                self.first(s)
+            new_first_size = self.first_tab_size()
+            if first_size == new_first_size:
+                break
+
         self.first_computed = True
             
     def firstW(self, w):
@@ -128,10 +138,7 @@ class Grammar:
                     self.first_log(s, "epsilon", rhs)
                     self.first_tab[s].add("epsilon")
                     break
-                # We must first calculate FIRST(y_1) before
-                # use it.
-                if self.first_tab[y_1] == set():
-                    self.first(y_1)
+
                 # FIRST(y_1) \subseteq FIRST(s)    
                 for a in self.first_tab[y_1]:
                     self.first_log(s, a, rhs)                    
@@ -142,10 +149,7 @@ class Grammar:
                 for i in range(1, len(rhs)):
                     y_ant = rhs[i - 1] # ant =  i - 1
                     y_i = rhs[i]
-                    # We must first calculate FIRST(y_ant) before
-                    # use it.
-                    if self.first_tab[y_ant] == set():
-                        self.first(y_ant)
+
                     # FIRST(y_i) is included in FIRST(s) iff
                     # epsilon \in FISRT(y_j), for every 1 <= j <= i.
                     # However, we only reach j if every k 1 <= k < j
@@ -227,7 +231,7 @@ class Grammar:
             if curr_size == self.follow_tab_size():
                 break
             pass
-
+        self.follow_computed = True
             
     def follow(self, s):
         '''
