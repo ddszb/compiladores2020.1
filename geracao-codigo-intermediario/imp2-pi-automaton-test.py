@@ -16,7 +16,7 @@ class TestPiAut(unittest.TestCase):
         source_h.close()
         pi_ast = self.parser.parse(source, semantics=Impiler())
         (trace, step, out, dt) = run(pi_ast, color=False)
-        self.assertEqual(text in str(trace[state]))
+        self.assertTrue(text in str(trace[state]))
 
     def test_exp(self):
         '''
