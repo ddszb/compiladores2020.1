@@ -24,7 +24,7 @@ class TestPiAut(unittest.TestCase):
         está na sua forma pos-fixada na pilha de controle?
         '''
         control = "cnt : ['#BLKCMD', '#PRINT', '#LT', 1, '#MUL', 4, '#DIV', 3, 3]"
-        state = None
+        state = 4
         assert(type(control) == str and type(state) == int)
         self.__test_pi_aut('exp-test0.imp2', state, control)
         
