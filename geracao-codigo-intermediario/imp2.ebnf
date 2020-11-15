@@ -26,7 +26,13 @@
 
 start = [ds:decSeq] [cs:cmd_seq] $ ;
 
-exp = paren_exp | bin_exp | un_exp | @:atom ;
+exp = paren_exp | bin_exp | un_exp | list_exp | list_item | @:atom ;
+
+#list_exp = "[" idn:identifier "in" "[" ","%{l:exp}+ "]" "|" e:bin_exp "]" ;
+
+list_exp = "[" e:exp {','e:exp}* "]" ;
+
+list_item = idn:identifier"["e:exp"]" ;
 
 paren_exp = "(" e:exp ")" ;
 

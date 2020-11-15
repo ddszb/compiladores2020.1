@@ -17,7 +17,13 @@ class Impiler(object):
     def un_exp(self, ast):
         if ast.op == "not":
             return pi.Not(ast.e)
-        
+
+    def list_exp(self, ast):
+        return pi.List(ast.e)
+
+    def list_item(self, ast):
+        return (ast.e)
+
     def bin_exp(self, ast):
         if ast.op == "+":
             return pi.Sum(ast.e1, ast.e2)

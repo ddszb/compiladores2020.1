@@ -142,6 +142,13 @@ class Exp(Statement):
 class ArithExp(Exp):
     pass
 
+class List(ArithExp):
+    def __init__(self, e):
+        if isinstance(e, list):
+                ArithExp.__init__(self, e)
+        else:
+            raise IllFormed(self, e)
+
 class Num(ArithExp):
     def __init__(self, n):
         if isinstance(n, int):
