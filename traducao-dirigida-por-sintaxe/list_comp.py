@@ -45,12 +45,29 @@ class ListCompSemantics(object):
         return f
         
     def gt_right_id(self, ast):
-        pass
+        def f(x):
+            if type(ast.left) == int:
+                l = ast.left
+            else:
+                l = ast.left(x)
+            return l > x
+        return f
 
         # Do your magic here !
         
     def gt_all_exp(self, ast):
-        pass
+        def f(x):
+            left_t = type(ast.left)
+            if left_t == int:
+                l = ast.left
+            else:
+                l = ast.left(x)
+            if type(ast.right) == int:
+                r = ast.right
+            else:
+                r = ast.right(x)
+            return l > r
+        return f
         # Do your magic here !
         
     def equal_left_id_exp(self, ast):

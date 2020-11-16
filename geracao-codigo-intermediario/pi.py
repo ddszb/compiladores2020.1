@@ -139,15 +139,60 @@ class Exp(Statement):
                             str(self) + ": " + "Operator is not binary.")
 
 
+class ListInt(Statement):
+    def __init__(self, l):
+        if isinstance(l, list):
+            Statement.__init__(self, l)
+        else:
+            raise IllFormed(self, l)
+
+class ListIndex(Exp):
+    def __init__(self,idn, e):
+        if isinstance(idn, Id):
+            if isinstance(e, Exp):
+                Exp.__init__(self, idn, e)
+            else:
+                raise IllFormed(self, e)
+        else:
+            raise IllFormed(self, idn)
+
+class Concat(Exp):
+    def __init__(self, l, e):
+        if isinstance(l, Exp) or isinstance(l, ListInt):
+            if isinstance(e, Exp):
+                Exp.__init__(self, l, e)
+            else:
+                raise IllFormed(self, e)
+        else:
+            raise IllFormed(self, l)
+
+class ListAppend(Exp):
+    def __init__(self, l1, l2):
+        if isinstance(l1, Exp) or isinstance(l1, ListInt):
+            if isinstance(l2, Exp) or isinstance(l2, ListInt):
+                Exp.__init__(self, l1, l2)
+            else:
+                raise IllFormed(self, l2)
+        else:
+            raise IllFormed(self, l2)
+
+
+class ListAssign(Statement):
+    def __init__(self, idn, idx, e):
+        if isinstance(idn, Id):
+            if isinstance(idx, Exp):
+                if isinstance(e, Exp):
+                    Statement.__init__(self, idn, idx, e)
+                else:
+                    raise IllFormed(self, e)
+            else:
+                raise IllFormed(self, idx)
+        else:
+            raise IllFormed(self, idn)
+
+
 class ArithExp(Exp):
     pass
-
-class List(ArithExp):
-    def __init__(self, e):
-        if isinstance(e, list):
-                ArithExp.__init__(self, e)
-        else:
-            raise IllFormed(self, e)
 
 class Num(ArithExp):
     def __init__(self, n):
@@ -163,7 +208,7 @@ class Num(ArithExp):
             ret = str(self.num())
         return ret
 
-        
+
     def num(self):
         return self.operand(0)
 
@@ -324,6 +369,10 @@ class ExpKW():
     AND = "#AND"
     OR = "#OR"
     NOT = "#NOT"
+    IDX = "#IDX"
+    APPEND = "#APPEND"
+    CONCAT = "CONCAT"
+    LASG = "LASG"
 
 class ExpPiAut(PiAutomaton):
 
@@ -541,6 +590,64 @@ class ExpPiAut(PiAutomaton):
         v = self.popVal()
         self.pushVal(not v)
 
+    def __evalListInt(self, e):
+        f = e.operand(0)
+        self.pushVal(f)
+
+    def __evalListAppend(self, e):
+        l1 = e.operand(0)
+        l2  = e.operand(1)
+        self.pushCnt(ExpKW.APPEND)
+        self.pushCnt(l1)
+        self.pushCnt(l2)
+
+    def __evalListAppendKW(self):
+        l1 = self.popVal()
+        l2 = self.popVal()
+        self.pushVal(l1 + l2)
+
+
+    def __evalConcat(self, e):
+        l = e.operand(0)
+        e = e.operand(1)
+        self.pushCnt(ExpKW.CONCAT)
+        self.pushCnt(l)
+        self.pushCnt(e)
+
+    def __evalConcatKW(self):
+        l = self.popVal()
+        e = self.popVal()
+        nl = l.copy()
+        nl.append(Num(e))
+        self.pushVal(nl)
+
+    def __evalListIndex(self, e):
+        idn = e.operand(0)
+        idx = e.operand(1)
+        self.pushCnt(ExpKW.IDX)
+        self.pushCnt(idn)
+        self.pushCnt(idx)
+
+    def __evalListIndexKW(self):
+        l = self.popVal()
+        idx = self.popVal()
+        self.pushVal(l[idx])
+
+    def __evalListAssign(self, e):
+        li = e.operand(0)
+        e = e.operand(1)
+        self.pushCnt(ExpKW.LASG)
+        self.pushCnt(ExpKW.IDX)
+        self.pushCnt(li.operand(0))
+        self.pushCnt(li.operand(1))
+        self.pushCnt(e)
+
+    def __evalListAssignKW(self):
+        i = self.popVal()
+        l = self.popVal()
+        v = self.popVal()
+        self.pushVal(i)
+
 
     def eval(self):
         e = self.popCnt()
@@ -596,6 +703,24 @@ class ExpPiAut(PiAutomaton):
             self.__evalNot(e)
         elif e == ExpKW.NOT:
             self.__evalNotKW()
+        elif isinstance(e, ListInt):
+            self.__evalListInt(e)
+        elif isinstance(e, ListIndex):
+            self.__evalListIndex(e)
+        elif e == ExpKW.IDX:
+            self.__evalListIndexKW()
+        elif isinstance(e, ListAppend):
+            self.__evalListAppend(e)
+        elif e == ExpKW.APPEND:
+            self.__evalListAppendKW()
+        elif isinstance(e, Concat):
+            self.__evalConcat(e)
+        elif e == ExpKW.CONCAT:
+            self.__evalConcatKW()
+        elif isinstance(e, ListAssign):
+            self.__evalListAssign()
+        elif e == ExpKW.LASG:
+            self.__evalListAssignKW()
         else:
             raise EvaluationError( \
                 "Don't know how to evaluate " + str(e) + " of type " + str(type(e)) + "." + \
@@ -604,7 +729,7 @@ class ExpPiAut(PiAutomaton):
 #
 # Commands
 #
-        
+
 class Cmd(Statement):
     pass
 
@@ -637,7 +762,7 @@ class Assign(Cmd):
 
     def __init__(self, i, e):
         if isinstance(i, Id):
-            if isinstance(e, Exp):
+            if isinstance(e, Exp) or isinstance(e, ListInt):
                 Cmd.__init__(self, i, e)
             else:
                 raise IllFormed(self, e)
@@ -673,7 +798,7 @@ class Cond(Cmd):
     def __init__(self, be, c1, c2):
         if isinstance(be, BoolExp):
             if isinstance(c1, Cmd):
-                if isinstance(c2, Cmd):                
+                if isinstance(c2, Cmd):
                     Cmd.__init__(self, be, c1, c2)
                 else:
                     raise IllFormed(self, c2)
@@ -723,7 +848,7 @@ class CmdKW:
     ASSIGN = "#ASSIGN"
     LOOP   = "#LOOP"
     COND   = "#COND"
-    PRINT  = "#PRINT" 
+    PRINT  = "#PRINT"
 
 class CmdPiAut(ExpPiAut):
 
@@ -772,7 +897,7 @@ class CmdPiAut(ExpPiAut):
 
     def __emmit(self, e):
         self["out"].append(e)
-        
+
     def __evalPrint(self, c):
         e = c.exp()
         self.pushCnt(CmdKW.PRINT)
@@ -781,7 +906,7 @@ class CmdPiAut(ExpPiAut):
     def __evalPrintKW(self):
         v = self.popVal()
         self.__emmit(v)
-        
+
     def __evalAssign(self, c):
         i = c.lvalue()
         e = c.rvalue()
@@ -817,8 +942,8 @@ class CmdPiAut(ExpPiAut):
         if t:
             self.pushCnt(c.then_branch())
         else:
-            self.pushCnt(c.else_branch())            
-        
+            self.pushCnt(c.else_branch())
+
     def __evalLoop(self, c):
         be = c.cond()
         bl = c.body()
@@ -878,7 +1003,7 @@ class CmdPiAut(ExpPiAut):
 #
 # Declarations
 #
-            
+
 class Dec(Statement):
     pass
 
@@ -892,7 +1017,7 @@ class Bind(Dec):
                 i = args[0]
                 e = args[1]
                 if isinstance(i, Id):
-                    if isinstance(e, Exp):
+                    if isinstance(e, Exp) or isinstance(e, ListInt):
                         Dec.__init__(self, i, e)
                     else:
                         raise IllFormed(self, e)

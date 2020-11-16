@@ -18,13 +18,21 @@ class Impiler(object):
         if ast.op == "not":
             return pi.Not(ast.e)
 
-    def list_exp(self, ast):
-        return pi.List(ast.e)
+    def list_int(self, ast):
+        return pi.ListInt(ast.e)
 
-    def list_item(self, ast):
-        return (ast.e)
+    def list_index(self, ast):
+        return pi.ListIndex(ast.idn, ast.e)
+
+    def list_append(self, ast):
+        return pi.ListAppend(ast.l1, ast.l2)
+
+    def list_assign(self, ast):
+        return pi.ListAssign(ast.idn, ast.idx, ast.e)
 
     def bin_exp(self, ast):
+        if not ast.op and ast.c:
+            return pi.Concat(ast.l, ast.e)
         if ast.op == "+":
             return pi.Sum(ast.e1, ast.e2)
         elif ast.op == "-":
