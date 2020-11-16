@@ -1,0 +1,35 @@
+var li = [1,2,3];
+var x = 0;
+const li2 = [4,5,6];
+var novaLista = [ 7, 3, 4, 1, 8, 2, 6, 5];
+
+# Print
+print(li); # out: [1, 2, 3]
+
+# Tamanho
+print( ::li);       # out : 3
+
+# Append
+li := li ++ li2;
+print(li);          # out : [1, 2, 3, 4, 5, 6]
+
+li := [0] ++ li;
+print(li);          # out: [0, 1, 2, 3, 4, 5, 6]
+
+li := li ++ [0,0];
+print(li);          # out: [0, 1, 2, 3, 4, 5, 6, 0, 0]
+
+# Concatenação
+li := li << 55;
+print(li);           # out: [0, 1, 2, 3, 4, 5, 6, 0, 0, 55]
+
+# Projeção
+print(li[9]);        # out: 55
+
+while (x < 10){
+    li[x] := 0;
+    x := x + 1
+};
+
+print(li)           # out: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
