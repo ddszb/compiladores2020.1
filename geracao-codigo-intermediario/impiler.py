@@ -36,8 +36,8 @@ class Impiler(object):
 
     def bin_exp(self, ast):
         if ast.op == "+":
-            if isinstance(ast.e1, pi.Num):
-                return pi.Sum(ast.e1, ast.e2)
+            return pi.Sum(ast.e1, ast.e2)
+        elif ast.op == "<<":
             return pi.Concat(ast.e1, ast.e2)
         elif ast.op == "-":
             return pi.Sub(ast.e1, ast.e2)        

@@ -1065,7 +1065,7 @@ class Bind(Dec):
 
 class Ref(Exp):
     def __init__(self, e):
-        if isinstance(e, Exp):
+        if isinstance(e, Exp) or isinstance(e, ListInt):
             Exp.__init__(self, e)
         else:
             raise IllFormed(self, e)
