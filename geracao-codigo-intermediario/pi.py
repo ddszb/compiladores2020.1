@@ -604,10 +604,10 @@ class ExpPiAut(PiAutomaton):
 
     def __evalConcat(self, e):
         l = e.operand(0)
-        e = e.operand(1)
+        v = e.operand(1)
         self.pushCnt(ExpKW.CONCAT)
         self.pushCnt(l)
-        self.pushCnt(e)
+        self.pushCnt(v)
 
     def __evalConcatKW(self):
         l = self.popVal()
