@@ -26,7 +26,7 @@
 
 start = [ds:decSeq] [cs:cmd_seq] $ ;
 
-exp = list_append | paren_exp | bin_exp | un_exp | list_int | list_index | @:atom ;
+exp = list_index | list_append | paren_exp | bin_exp | un_exp | list_int | @:atom ;
 
 list_int = "[" e:exp {','e:exp}* "]" ;
 
@@ -38,7 +38,7 @@ list_append = l1:exp "++" l2:exp | l1:list_int "++" l2:list_int | l1:exp "++" l2
 
 paren_exp = "(" e:exp ")" ;
 
-bin_exp = l:list_int c:"+" e:exp |  l:exp c:"+" e:exp | e1:exp op:binop e2:exp ;
+bin_exp = l:list_int c:"+" e:exp | e1:exp op:binop e2:exp ;
 
 un_exp = op:"not" e:exp ;
 
@@ -64,11 +64,11 @@ blk = "{" ds:decSeq cs:cmd_seq "}" ;
 
 cmd_seq = ";"%{ac:atom_cmd}+ ;
 
-atom_cmd = cond | loop | assign | print | call | skip ;
+atom_cmd = cond | loop | list_assign | assign | print | call | skip ;
 
 skip = "skip" ;
 
-assign = list_assign | idn:identifier op:":=" e:exp ;
+assign =  idn:identifier op:":=" e:exp ;
 
 print = op:"print" e:exp ;
 

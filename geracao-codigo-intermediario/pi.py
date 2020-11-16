@@ -177,19 +177,6 @@ class ListAppend(Exp):
             raise IllFormed(self, l2)
 
 
-class ListAssign(Statement):
-    def __init__(self, idn, idx, e):
-        if isinstance(idn, Id):
-            if isinstance(idx, Exp):
-                if isinstance(e, Exp):
-                    Statement.__init__(self, idn, idx, e)
-                else:
-                    raise IllFormed(self, e)
-            else:
-                raise IllFormed(self, idx)
-        else:
-            raise IllFormed(self, idn)
-
 
 class ArithExp(Exp):
     pass
@@ -633,20 +620,29 @@ class ExpPiAut(PiAutomaton):
         idx = self.popVal()
         self.pushVal(l[idx])
 
-    def __evalListAssign(self, e):
-        li = e.operand(0)
-        e = e.operand(1)
+    def __evalListAssign(self, c):
+        idn = c.operand(0)
+        idx = c.operand(1)
+        e = c.operand(2)
+
+        self.pushVal(idn.id())
+        self.pushVal(idx)
         self.pushCnt(ExpKW.LASG)
-        self.pushCnt(ExpKW.IDX)
-        self.pushCnt(li.operand(0))
-        self.pushCnt(li.operand(1))
         self.pushCnt(e)
 
     def __evalListAssignKW(self):
-        i = self.popVal()
-        l = self.popVal()
         v = self.popVal()
-        self.pushVal(i)
+        idx = self.popVal()
+        idn = self.popVal()
+        l = self.getBindable(idn)
+        sto = self.sto()
+        # Permite acessar índice como variável
+        if isinstance(idx, Id):
+            aux = self.getBindable(idx.id())
+            idx = sto[aux]
+        nl = sto[l]
+        nl[idx] = Num(v)
+        self.updateStore(l, nl)
 
 
     def eval(self):
@@ -718,7 +714,7 @@ class ExpPiAut(PiAutomaton):
         elif e == ExpKW.CONCAT:
             self.__evalConcatKW()
         elif isinstance(e, ListAssign):
-            self.__evalListAssign()
+            self.__evalListAssign(e)
         elif e == ExpKW.LASG:
             self.__evalListAssignKW()
         else:
@@ -757,6 +753,19 @@ class Print(Cmd):
 
     def exp(self):
         return self.operand(0)
+
+class ListAssign(Cmd):
+    def __init__(self, idn, idx, e):
+        if isinstance(idn, Id):
+            if isinstance(idx, Exp):
+                if isinstance(e, Exp):
+                    Cmd.__init__(self, idn, idx, e)
+                else:
+                    raise IllFormed(self, e)
+            else:
+                raise IllFormed(self, idx)
+        else:
+            raise IllFormed(self, idn)
 
 class Assign(Cmd):
 
