@@ -19,7 +19,9 @@ class Impiler(object):
             return pi.Not(ast.e)
 
     def list_int(self, ast):
-        return pi.ListInt(ast.e)
+        if isinstance(ast.e, list):
+            return pi.ListInt(ast.e)
+        return pi.ListInt([ast.e])
 
     def list_index(self, ast):
         return pi.ListIndex(ast.idn, ast.e)
