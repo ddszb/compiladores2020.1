@@ -17,6 +17,8 @@ class Impiler(object):
     def un_exp(self, ast):
         if ast.op == "not":
             return pi.Not(ast.e)
+        if ast.op == "::":
+            return pi.ListSize(ast.e)
 
     def list_int(self, ast):
         if isinstance(ast.e, list):
@@ -33,10 +35,10 @@ class Impiler(object):
         return pi.ListAssign(ast.idn, ast.idx, ast.e)
 
     def bin_exp(self, ast):
-        if not ast.op and ast.c:
-            return pi.Concat(ast.l, ast.e)
         if ast.op == "+":
-            return pi.Sum(ast.e1, ast.e2)
+            if isinstance(ast.e1, pi.Num):
+                return pi.Sum(ast.e1, ast.e2)
+            return pi.Concat(ast.e1, ast.e2)
         elif ast.op == "-":
             return pi.Sub(ast.e1, ast.e2)        
         elif ast.op == "*":

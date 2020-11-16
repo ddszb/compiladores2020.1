@@ -146,6 +146,13 @@ class ListInt(Statement):
         else:
             raise IllFormed(self, l)
 
+class ListSize(Exp):
+    def __init(self, e):
+        if isinstance(e, ListInt) or isinstance(e, Id):
+            Exp.__init__(self, e)
+        else:
+            raise IllFormed(self, e)
+
 class ListIndex(Exp):
     def __init__(self,idn, e):
         if isinstance(idn, Id):
@@ -360,6 +367,7 @@ class ExpKW():
     APPEND = "#APPEND"
     CONCAT = "CONCAT"
     LASG = "LASG"
+    SIZE = "SIZE"
 
 class ExpPiAut(PiAutomaton):
 
@@ -620,6 +628,15 @@ class ExpPiAut(PiAutomaton):
         idx = self.popVal()
         self.pushVal(l[idx])
 
+    def __evalListSize(self, e):
+        l = e.operand(0)
+        self.pushCnt(ExpKW.SIZE)
+        self.pushCnt(l)
+
+    def __evalListSizeKW(self):
+        l = self.popVal()
+        self.pushVal(len(l))
+
     def __evalListAssign(self, c):
         idn = c.operand(0)
         idx = c.operand(1)
@@ -717,6 +734,10 @@ class ExpPiAut(PiAutomaton):
             self.__evalListAssign(e)
         elif e == ExpKW.LASG:
             self.__evalListAssignKW()
+        elif isinstance(e, ListSize):
+            self.__evalListSize(e)
+        elif e == ExpKW.SIZE:
+            self.__evalListSizeKW()
         else:
             raise EvaluationError( \
                 "Don't know how to evaluate " + str(e) + " of type " + str(type(e)) + "." + \

@@ -38,9 +38,9 @@ list_append = l1:exp "++" l2:exp | l1:list_int "++" l2:list_int | l1:exp "++" l2
 
 paren_exp = "(" e:exp ")" ;
 
-bin_exp = l:list_int c:"+" e:exp | e1:exp op:binop e2:exp ;
+bin_exp = l:list_int op:"+" e:exp | e1:exp op:binop e2:exp ;
 
-un_exp = op:"not" e:exp ;
+un_exp = op:"::" e:exp | op:"not" e:exp ;
 
 atom = @:num_atom  | @:truth_atom | @:id_atom ;
 
