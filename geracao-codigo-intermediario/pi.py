@@ -658,7 +658,13 @@ class ExpPiAut(PiAutomaton):
             aux = self.getBindable(idx.id())
             idx = sto[aux]
         nl = sto[l]
-        nl[idx] = Num(v)
+        if not isinstance(v, Num):
+            v = Num(v)
+        if isinstance(idx, int):
+            nl[idx] = v
+        else:
+            nl[idx.num()] = v
+
         self.updateStore(l, nl)
 
 

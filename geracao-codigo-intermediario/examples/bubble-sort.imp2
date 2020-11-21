@@ -1,0 +1,29 @@
+var vals = 0;
+var j = 0;
+var k = 0;
+var c1 = 0;
+var c2 = 0;
+var i = 0;
+var x = 0;
+var y = 3;
+
+
+vals := [7, 3, 4, 0, 5, 2, 1, 6];
+i := :: vals;
+i := i - 1;
+print(i);
+while (i > 0){
+	while (j < i){
+	    k := j + 1;
+		c1 := vals[j];
+		c2 := vals[k];
+        if (c1 > c2){
+			vals[j] := c2;
+			vals[k] := c1
+		};
+		j := j + 1
+	};
+	j := 0;
+	i := i - 1
+};
+print(vals)
