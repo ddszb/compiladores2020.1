@@ -794,11 +794,19 @@ class ListAssign(Cmd):
         else:
             raise IllFormed(self, idn)
 
+class Return(Cmd):
+    def __init__(self, e):
+        if isinstance(e, Exp) or isinstance(e, ListInt):
+            Cmd.__init__(self, e)
+        else:
+            raise IllFormed(self, e)
+
+
 class Assign(Cmd):
 
     def __init__(self, i, e):
         if isinstance(i, Id):
-            if isinstance(e, Exp) or isinstance(e, ListInt):
+            if isinstance(e, Exp) or isinstance(e, ListInt) or isinstance(e, Call):
                 Cmd.__init__(self, i, e)
             else:
                 raise IllFormed(self, e)
@@ -885,6 +893,7 @@ class CmdKW:
     LOOP   = "#LOOP"
     COND   = "#COND"
     PRINT  = "#PRINT"
+    RETURN = "#RETURN"
 
 class CmdPiAut(ExpPiAut):
 
@@ -1008,6 +1017,31 @@ class CmdPiAut(ExpPiAut):
         self.pushCnt(c1)
 
 
+    def __evalReturn(self, c):
+       v = c.operand(0)
+       self.pushCnt(CmdKW.RETURN)
+       self.pushCnt(v)
+
+    def __evalReturnKW(self):
+        v = self.popVal()
+        env = self.popVal()
+        # A pilha de valores está com listas e dicionarios dos BLK,
+        # remove eles até chegar no identificador do que deve ser retornado
+        ignore = self.popVal()
+        while isinstance(ignore, list) or isinstance(ignore, dict):
+            ignore = self.popVal()
+        exp = ignore
+        # Limpa a pilha de valores e Insere enviroment, expressão e o valor de volta na pilha
+        self['val'] = [[], [], {}]
+        self.pushVal(env)
+        self.pushVal(exp)
+        self.pushVal(v)
+        # Ignora a pilha de controle até passar do bloco #BLKCALL, que é quando sai da abstração
+        ignore = self.popCnt()
+        while ignore != DecCmdKW.BLKCALL:
+            ignore = self.popCnt()
+
+
     def eval(self):
         c = self.popCnt()
         if isinstance(c, Print):
@@ -1032,6 +1066,10 @@ class CmdPiAut(ExpPiAut):
             self.__evalLoopKW()
         elif isinstance(c, CSeq):
             self.__evalCSeq(c)
+        elif isinstance(c, Return):
+            self.__evalReturn(c)
+        elif c == CmdKW.RETURN:
+            self.__evalReturnKW()
         else:
             self.pushCnt(c)
             super().eval()
@@ -1153,9 +1191,12 @@ class DecExpKW(ExpKW):
 class DecCmdKW(CmdKW):
     BLKDEC = "#BLKDEC"
     BLKCMD = "#BLKCMD"
+    BLKCALL= "#BLKCALL"
+    BLKCMDCALL = "#BLKCMDCALL"
 
 class DecKW():
     BIND = "#BIND"
+    BABS = "#BABS"
     DSEQ = "#DSEQ"
 
 class DecPiAut(CmdPiAut):
@@ -1229,7 +1270,7 @@ class DecPiAut(CmdPiAut):
             self.pushCnt(DecCmdKW.BLKCMD)
             self.pushCnt(c)
 
-    def __evalBlkDecKW(self):
+    def __evalBlkDecKW(self, dec):
         d = self.popVal()
         c = self.popVal()
         en = self.env()
@@ -1237,7 +1278,10 @@ class DecPiAut(CmdPiAut):
         ne.update(d)
         self.pushVal(en)
         self["env"] = ne
-        self.pushCnt(DecCmdKW.BLKCMD)
+        if dec == DecCmdKW.BLKCALL:
+            self.pushCnt(DecCmdKW.BLKCALL)
+        if dec == DecCmdKW.BLKCMD:
+            self.pushCnt(DecCmdKW.BLKCMD)
         self.pushCnt(c)
 
     def __evalBlkCmdKW(self):
@@ -1271,9 +1315,9 @@ class DecPiAut(CmdPiAut):
             self.__evalRefKW()
         elif isinstance(d, Blk):
             self.__evalBlk(d)
-        elif d == DecCmdKW.BLKDEC:
-            self.__evalBlkDecKW()
-        elif d == DecCmdKW.BLKCMD:
+        elif d == DecCmdKW.BLKDEC or d == DecCmdKW.BLKCALL:
+            self.__evalBlkDecKW(d)
+        elif d == DecCmdKW.BLKCMD or d == DecCmdKW.BLKCMDCALL:
             self.__evalBlkCmdKW()
         else:
             self.pushCnt(d)
@@ -1492,7 +1536,7 @@ class AbsPiAut(DecPiAut):
         ce.update(d)
         self["env"] = ce
         # Pushes the keyword BLKCMD for block completion.
-        self.pushCnt(DecCmdKW.BLKCMD)
+        self.pushCnt(DecCmdKW.BLKCALL)
         # Pushes the body of the caller function into the control stack.
         self.pushCnt(clos.blk())
 

@@ -1,0 +1,18 @@
+var y = [1,2,3,4,5];
+var z = 0;
+var i = 0;
+var aux_l = 0;
+var aux = 0;
+
+# Multiplica todos os elementos de uma lista por 2
+def multiplica(x){
+    aux_l := y;
+    while (i < 5){
+        aux := y[i];
+        aux_l[i] := aux * 2;
+        i := i + 1
+    };
+    return aux_l
+}
+z := multiplica(y);
+print(z)

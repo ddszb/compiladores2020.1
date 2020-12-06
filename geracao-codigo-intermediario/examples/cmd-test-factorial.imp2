@@ -1,0 +1,12 @@
+var f = 1 ;
+var y = 0 ;
+var i = 1 ;
+def fat (x) {
+    while (i < x){
+        i := i + 1 ;
+        f := f * i
+    } ;
+    return f
+}
+y := fat(8) ;
+print(y)

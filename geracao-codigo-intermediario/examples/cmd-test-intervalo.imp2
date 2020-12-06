@@ -1,0 +1,23 @@
+var z = 1 ;
+var w = 1;
+var y = 1;
+# Demonstra que o return vai ignorar o resto da abstração em qualquer momento
+def intervalo (x) {
+    z := x ;
+    if (z < 10){
+        z := 1;
+        return z
+    };
+    if (z < 20){
+        z := 2;
+        return z
+    };
+    if (z < 30){
+        z := 3;
+        return z
+    };
+    z := 4;
+    return z
+}
+y := intervalo(15) ;
+print(y)

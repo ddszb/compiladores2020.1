@@ -34,6 +34,10 @@ class Impiler(object):
     def list_assign(self, ast):
         return pi.ListAssign(ast.idn, ast.idx, ast.e)
 
+    def return_cmd(self, ast):
+        return pi.Return(ast.e)
+
+
     def bin_exp(self, ast):
         if ast.op == "+":
             return pi.Sum(ast.e1, ast.e2)
