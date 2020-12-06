@@ -1196,7 +1196,6 @@ class DecCmdKW(CmdKW):
 
 class DecKW():
     BIND = "#BIND"
-    BABS = "#BABS"
     DSEQ = "#DSEQ"
 
 class DecPiAut(CmdPiAut):
